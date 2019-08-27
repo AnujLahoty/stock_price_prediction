@@ -40,8 +40,6 @@ if time_tuple[6] == 5 or time_tuple[6] == 6:
 	#sys.exit(0)
 else:
 	print("Fetching value...")
-
-#adj_close_value = "Default"
 	
 url = 'https://markets.businessinsider.com/index/s&p_500'
 response_obj = requests.get(url)
@@ -63,10 +61,6 @@ output_file = open('^GSPC (2).csv', 'a', newline = '')
 output_writer = csv.writer(output_file)
 output_writer.writerow([dt_us_reformat, 0, 0, 0, 0, adj_close_value, 0])
 output_file.close()
-
-
-
-
 
 # Reading the data and storing it in the dataframe
 df = pd.read_csv('^GSPC (2).csv')
@@ -115,15 +109,40 @@ y = y.astype(float)
 
 # TRAINING SET AND TEST SET
 from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, y)
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state = 42)
 
 
 # MACHINE LEARNING MODEL SECTION . 
 
 # FITTING THE VALUES
+
+####################################################################################################################################################
+# Algorithm Number 1
+
+# Decision Tree Regression
+from sklearn.tree import DecisionTreeRegressor
+tree_reg = DecisionTreeRegressor()
+tree_reg.fit(X_train, y_train)
+y_pred_decision_tree = tree_reg.predict(X_test)
+
+# 1. Cross Validation
+from sklearn.model_selection import cross_val_score
+accuracies = cross_val_score(tree_reg, X_train, y_train, cv=10)
+mean_tree_reg = accuracies.mean()
+print('cross validation score for decision tree is ',mean_tree_reg)
+
+# 2. Residual Squared Error
+from sklearn.metrics import r2_score
+r_2_score_tree_reg = r2_score(y_test, y_pred_decision_tree)
+print('r_2 score for decision tree  is ', r_2_score_tree_reg)
+
+
+
+####################################################################################################################################################
+# Algorithm Number 2
 # We are basicelly using the decision tree  algorithm to get our model learn and predict
 
-# Bagging classifier
+# Bagging Regressor
 
 from sklearn.ensemble import BaggingRegressor
 from sklearn.tree import DecisionTreeRegressor
@@ -145,13 +164,41 @@ y_pred = bag_reg.predict(X_test)
 # GOING FOR THE CROSS VALIDATION TEST ON THE TRAINING DATASET
 from sklearn.model_selection import cross_val_score
 accuracies = cross_val_score(bag_reg, X_train, y_train, cv=10)
-mean = accuracies.mean()
-print(mean)
+mean_bag_reg = accuracies.mean()
+print('mean for bagging regressor is ',mean_bag_reg)
 
 # 2. Residual Squared Error
 from sklearn.metrics import r2_score
-r_2_score = r2_score(y_test, y_pred)
-print('r_2 score is ', r_2_score)
+r_2_score_bag_reg = r2_score(y_test, y_pred)
+print('r_2 score for bagging regression is ', r_2_score_bag_reg)
+
+####################################################################################################################################################
+
+# Algorithm Number 3
+
+# Random Forest Regression
+from sklearn.ensemble import RandomForestRegressor
+rnd_reg = RandomForestRegressor()
+rnd_reg.fit(X_train, y_train)
+
+y_pred_rf = rnd_reg.predict(X_test)
+
+# ASSESSING THE MODEL
+
+# 1. Cross Validation score
+
+# GOING FOR THE CROSS VALIDATION TEST ON THE TRAINING DATASET
+from sklearn.model_selection import cross_val_score
+accuracies = cross_val_score(rnd_reg, X_train, y_train, cv=10)
+mean_rand_reg = accuracies.mean()
+print('mean for bagging regressor is ', mean_rand_reg)
+
+# 2. Residual Squared Error
+from sklearn.metrics import r2_score
+r_2_score_bag_reg = r2_score(y_test, y_pred_rf)
+print('r_2 score for random forest regression is ', r_2_score_bag_reg)
+####################################################################################################################################################
+
 
 
 # FUTURE PREDICTION OF PRICE 
@@ -207,7 +254,7 @@ print(smtpObj.starttls())
 
 print(smtpObj.login('anujlahoty1997@gmail.com', password))
 
-smtpObj.sendmail('anujlahoty1997@gmail.com', 'anujlahoty1997@gmail.com','aditya.guggari@gmail.com' 
+smtpObj.sendmail('anujlahoty1997@gmail.com','anujlahoty1997@gmail.com',
 					'Subject : TESTING\n I am sending this email for testing purpose.'+future_pred 
 					)
 
